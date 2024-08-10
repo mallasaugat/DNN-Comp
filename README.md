@@ -50,5 +50,5 @@
 
 
 ## Resources
-[Dive into Deep Learning](https://d2l.ai/index.html)
-[Papers with Code](https://paperswithcode.com/datasets)
+- [Dive into Deep Learning](https://d2l.ai/index.html)
+- [Papers with Code](https://paperswithcode.com/datasets)

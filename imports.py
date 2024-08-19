@@ -9,3 +9,4 @@ import pandas as pd
 import torch
 from matplotlib_inline import backend_inline
 from torch import nn
+from torch.nn import functional as F

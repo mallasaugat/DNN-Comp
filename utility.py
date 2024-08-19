@@ -2,9 +2,8 @@
     Visualization imports
 """
 
-from torch import reshape
-
-from imports import backend_inline, collections, inspect, nn, plt, torch
+from hpo import HyperParameters
+from imports import backend_inline, collections, nn, plt, torch
 
 
 def use_svg_display():
@@ -79,22 +78,6 @@ def plot(
     set_axes(axes, xlabel, ylabel, xlim, ylim, xscale, yscale, legend)
 
 
-class HyperParameters:
-    """The base class of hyperparameters"""
-
-    def save_hyperparameters(self, ignore=[]):
-        """Save function arguments into class attributes."""
-        frame = inspect.currentframe().f_back
-        _, _, _, local_vars = inspect.getargvalues(frame)
-        self.hparams = {
-            k: v
-            for k, v in local_vars.items()
-            if k not in set(ignore + ["self"]) and not k.startswith("_")
-        }
-        for k, v in self.hparams.items():
-            setattr(self, k, v)
-
-
 class ProgressBoard(HyperParameters):
     """The board that plots data points in animation."""
 
@@ -162,6 +145,15 @@ class ProgressBoard(HyperParameters):
         axes.legend(plt_lines, labels)
         display.display(self.fig)
         display.clear_output(wait=True)
+
+
+def add_to_class(Class):
+    """Register functions as methods in created class."""
+
+    def wrapper(obj):
+        setattr(Class, obj.__name__, obj)
+
+    return wrapper
 
 
 class Module(nn.Module, HyperParameters):
@@ -286,16 +278,15 @@ class Trainer(HyperParameters):
 
 class Classifier(Module):
     """Base class of classification models"""
+
     def validation_step(self, batch):
         Y_hat = self(*batch[:-1])
-        self.plot('loss', self.loss(Y_hat, batch[-1]), train=False)
-        self.plot('acc', self.accuracy(Y_hat, batch[-1], train=False))
+        self.plot("loss", self.loss(Y_hat, batch[-1]), train=False)
+        self.plot("acc", self.accuracy(Y_hat, batch[-1]), train=False)
 
     def accuracy(self, Y_hat, Y, averaged=True):
         """Compute the number of correct predictions."""
-        Y_hat = torch.reshape(Y_hat, (-1, Y_hat.shape[-1]))
-        preds = astype(torch.argmax(Y_hat, 1), Y.dtype)
-        compare = astype(preds == reshape(Y, -1), float32)
-
-class MLP():
-
+        Y_hat = Y.reshape(-1, Y_hat.shape[-1])
+        preds = Y_hat.astype(Y_hat.argmax(Y_hat, 1), Y.dtype)
+        compare = Y.astype(preds == Y.reshape(-1), torch.float32)
+        return compare.reshape() if averaged else compare

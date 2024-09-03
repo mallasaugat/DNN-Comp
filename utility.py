@@ -290,3 +290,11 @@ class Classifier(Module):
         preds = Y_hat.astype(Y_hat.argmax(Y_hat, 1), Y.dtype)
         compare = Y.astype(preds == Y.reshape(-1), torch.float32)
         return compare.reshape() if averaged else compare
+
+
+@add_to_class(Classifier)
+def layer_summary(self, X_shape):
+    X = torch.randn(*X_shape)
+    for layer in self.net:
+        X = layer(X)
+        print(layer.__class__.__name__, "output shape:\t", X.shape)
